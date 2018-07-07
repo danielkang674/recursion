@@ -6,9 +6,6 @@
 var stringifyJSON = function(obj) {
   // your code goes here
   let result = '';
-  if (typeof obj === 'function' || typeof obj === 'undefined') {
-    return undefined;
-  }
   if (typeof obj === 'number' || typeof obj === 'boolean' || typeof obj === 'string' || obj === null) {
     if (obj === null) {
       result += 'null';
@@ -22,10 +19,6 @@ var stringifyJSON = function(obj) {
   }
   if (Array.isArray(obj)) {
     result += '[';
-    // let tempArr = [];
-    // for (let i = 0; i < obj.length; i++) {
-    //   tempArr.push(stringifyJSON(obj[i]));
-    // }
     let tempArr = obj.map(function(value) {
       return stringifyJSON(value);
     });
@@ -33,6 +26,24 @@ var stringifyJSON = function(obj) {
     result += tempStr;
     result += ']';
   }
+  if (typeof obj === 'object' && !Array.isArray(obj) && obj !== null) {
+    result += '{';
+    let tempArr1 = [];
+    for (let key in obj) {
+      if (typeof obj[key] !== 'function' && obj[key] !== undefined) {
+        tempArr1.push('"' + key + '":' + stringifyJSON(obj[key]));
+      }
+    }
+    let tempStr1 = tempArr1.join(',');
+    result += tempStr1;
+    result += '}';
+  }
+
   return result;
 };
-console.log(stringifyJSON({a: 1, 2: 2, c: 'd'}));
+console.log(stringifyJSON([
+  {
+    'functions': function() {},
+    'undefined': undefined
+  }
+]));

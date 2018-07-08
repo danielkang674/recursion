@@ -26,5 +26,10 @@ var getElementsByClassName = function(className) {
         }
       }
     }
-  }
+  };
+
+  inner(className, document);
+
+  return classNodes;
+
 };

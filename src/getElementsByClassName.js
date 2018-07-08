@@ -20,7 +20,7 @@ var getElementsByClassName = function(className) {
         let classArr = Array.from(value.classList);
         for (let classItem of classArr) {
           if (classItem === className) {
-            classNodes.push(value);
+            classNodes.unshift(value);
             break;
           }
         }

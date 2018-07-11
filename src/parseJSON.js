@@ -80,13 +80,18 @@ var parseJSON = function (json) {
     } else {
       let tempObj = {};
       copyJSON = str.slice(1, str.length);
-      tempkey = strFunc(copyJSON);
-      tempObj[tempkey] = next(copyJSON);
-      if (tempObj[tempkey] === undefined) {
-        return {};
-      }
-      if (copyJSON[0] === ',' || (copyJSON[0] === '}' && copyJSON[1] === ',' && firstLayer === 'object')) {
-        tempObj = objFunc(copyJSON, tempObj);
+      if (copyJSON[0] === '}') {
+        tempObj = {};
+        copyJSON = copyJSON.slice(1);
+      } else {
+        tempkey = strFunc(copyJSON);
+        tempObj[tempkey] = next(copyJSON);
+        if (copyJSON[0] === ',' || (copyJSON[0] === '}' && copyJSON[1] === ',' && firstLayer === 'object')) {
+          tempObj = objFunc(copyJSON, tempObj);
+        }
+        if (copyJSON[0] === '}' && copyJSON[1] === ',' && firstLayer === 'array') {
+          copyJSON = copyJSON.slice(1);
+        }
       }
       return tempObj;
     }
@@ -106,12 +111,14 @@ var parseJSON = function (json) {
       let tempArray = [];
       copyJSON = str.slice(1, str.length);
       tempIndex = tempArray.length;
-      tempArray[tempIndex] = next(copyJSON);
-      if (tempArray[tempIndex] === undefined) {
-        return [];
-      }
-      if (copyJSON[0] === ',') {
-        tempArray = arrayFunc(copyJSON, tempArray);
+      if (copyJSON[0] === ']') {
+        tempArray = [];
+        copyJSON = copyJSON.slice(1);
+      } else {
+        tempArray[tempIndex] = next(copyJSON);
+        if (copyJSON[0] === ',') {
+          tempArray = arrayFunc(copyJSON, tempArray);
+        }
       }
       return tempArray;
     }
@@ -145,4 +152,4 @@ var parseJSON = function (json) {
   return result;
 
 };
-console.log(parseJSON('[{"a":"b"}, {"c":"d"}]'));
+console.log(parseJSON('{"a":[],"c": {}, "b": true}'));

@@ -6,31 +6,35 @@ var parseJSON = function (json) {
   // your code goes here
   let result;
   let copyJSON = json.slice();
-  if (copyJSON.length) {
-    let next = function (str) {
+  let next = function (str) {
+    if (str.length) {
       if (str[0] === '"') {
-        let endIndex = str.indexOf('"', 1);
-        let tempStr = str.slice(1, endIndex);
-        strFunc(tempStr);
-        copyJSON = copyJSON.slice(endIndex + 1);
+        return strFunc(str);
       }
       if (str[0] === '{') {
-        objFunc(str);
+        return objFunc(str);
       } else {
         copyJSON = copyJSON.slice(1);
-        next(copyJSON);
+        return next(copyJSON);
       }
-    };
-    let strFunc = function (str) {
-      return str;
-    };
-    let objFunc = function (str) {
-      result = {};
-      copyJSON = str.slice(1, str.length - 1);
-      let tempkey = next(copyJSON);
-      result[tempkey] = next(copyJSON); 
-    };
-  }
+    }
+  };
+  let strFunc = function (str) {
+    let endIndex = str.indexOf('"', 1);
+    let tempStr = str.slice(1, endIndex);
+    copyJSON = copyJSON.slice(endIndex + 1);
+    return tempStr;
+  };
+  let objFunc = function (str) {
+    let tempObj = {};
+    copyJSON = str.slice(1, str.length - 1);
+    let tempkey = strFunc(copyJSON);
+    tempObj[tempkey] = next(copyJSON);
+    return tempObj;
+  };
+  result = next(copyJSON);
   return result;
+
 };
-console.log(JSON.parse('{"foo":"bar"}'));
+console.log(parseJSON('{"foo":"bar"}')); // correct output
+console.log(parseJSON('{"foo":{"bar":"bazz"}}')); // correct output

@@ -4,6 +4,7 @@
 // but you're not, so you'll write it from scratch:
 var parseJSON = function (json) {
   // your code goes here
+  const firstLayer = json[0] === '[' ? 'array' : 'object';
   let result;
   let copyJSON = json.slice();
   let next = function (str) {
@@ -11,11 +12,14 @@ var parseJSON = function (json) {
       if (str[0] === '"') {
         return strFunc(str);
       }
-      if (RegExp(/[0-9]/).test(str[0])) {
+      if (RegExp(/[0-9\-]/).test(str[0])) {
         return numFunc(str);
       }
       if (str[0] === 't' || str[0] === 'f' || str[0] === 'n') {
         return boolFunc(str);
+      }
+      if (str[0] === '[') {
+        return arrayFunc(str);
       }
       if (str[0] === '{') {
         return objFunc(str);
@@ -34,11 +38,12 @@ var parseJSON = function (json) {
   };
 
   let numFunc = function (str) {
-    let endIndex = str.search(/[^0-9\.]/);
+    let endIndex = str.indexOf(',');
+    endIndex = endIndex === -1 ? str.indexOf(']') : endIndex;
     endIndex = endIndex === -1 ? str.length : endIndex;
     let tempNum = str.slice(0, endIndex);
     copyJSON = copyJSON.slice(endIndex);
-    return tempNum;
+    return Number(tempNum);
   };
 
   let boolFunc = function (str) {
@@ -77,36 +82,67 @@ var parseJSON = function (json) {
       copyJSON = str.slice(1, str.length);
       tempkey = strFunc(copyJSON);
       tempObj[tempkey] = next(copyJSON);
-      if (copyJSON[0] === ',' || (copyJSON[0] === '}' && copyJSON[1] === ',')) {
+      if (tempObj[tempkey] === undefined) {
+        return {};
+      }
+      if (copyJSON[0] === ',' || (copyJSON[0] === '}' && copyJSON[1] === ',' && firstLayer === 'object')) {
         tempObj = objFunc(copyJSON, tempObj);
       }
       return tempObj;
     }
   };
 
-  // let arrayFunc = function(str, existingArray){
-  //   let tempIndex;
-  //   if(existingArray){
+  let arrayFunc = function (str, existingArray) {
+    let tempIndex;
+    if (existingArray) {
+      tempIndex = existingArray.length;
+      copyJSON = str.slice(1, str.length);
+      existingArray[tempIndex] = next(copyJSON);
+      if (copyJSON[0] === ',') {
+        existingArray = arrayFunc(copyJSON, existingArray);
+      }
+      return existingArray;
+    } else {
+      let tempArray = [];
+      copyJSON = str.slice(1, str.length);
+      tempIndex = tempArray.length;
+      tempArray[tempIndex] = next(copyJSON);
+      if (tempArray[tempIndex] === undefined) {
+        return [];
+      }
+      if (copyJSON[0] === ',') {
+        tempArray = arrayFunc(copyJSON, tempArray);
+      }
+      return tempArray;
+    }
+  };
 
-  //   } else {
-  //     let tempArray = [];
-  //     copyJSON = str.slice(1, str.length -1);
-  //     tempIndex = tempArray.length;
-  //     tempArray[tempIndex] = next(copyJSON);
-
-  //   }
-  // }
+  let findMatchingBrace = function (str, type) {
+    let counter = 1;
+    let minusThis, plusThis;
+    if (type === 'object') {
+      minusThis = '}';
+      plusThis = '{';
+    } else if (type === 'array') {
+      minusThis = ']';
+      plusThis = '[';
+    } else {
+      console.log('error: wrong data type');
+    }
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === minusThis) {
+        counter--;
+      } else if (str[i] === plusThis) {
+        counter++;
+      }
+      if (counter === 0) {
+        return i;
+      }
+    }
+  };
 
   result = next(copyJSON);
   return result;
 
 };
-// console.log(parseJSON('{"a":[1,2, 3], "b": [4,5,6],"c":null}'));
-// console.log(parseJSON('{"a":true, "b": false, "c":null}'));
-// console.log(parseJSON('{"a":2, "b": 34, "c":1}'));
-// console.log(parseJSON('{"foo":"bar"}')); // correct output
-// console.log(parseJSON('{"foo":{"bar":"bazz"}}')); // correct output
-// console.log(parseJSON('{"a":"b", "c":"d"}')); // correct output
-// console.log(parseJSON('{"a":"b", "c":{"d": "e"}}')); // correct output
-console.log(parseJSON('{"c":{"d": "e", "g": 5}, "f": 1}')); // output { c:{d: e} }
-console.log(parseJSON('{"f": 1, "g": 2, "c":{"d": "e"}}')); // correct output
+console.log(parseJSON('[{"a":"b"}, {"c":"d"}]'));

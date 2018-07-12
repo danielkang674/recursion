@@ -4,7 +4,6 @@
 // but you're not, so you'll write it from scratch:
 var parseJSON = function (json) {
   // your code goes here
-  const firstLayer = json[0] === '[' ? 'array' : 'object';
   let result;
   let copyJSON = json.slice();
   let next = function (str) {
@@ -184,4 +183,3 @@ var parseJSON = function (json) {
   return result;
 
 };
-console.log(parseJSON('["foo", "bar"'));

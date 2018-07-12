@@ -32,8 +32,23 @@ var parseJSON = function (json) {
 
   let strFunc = function (str) {
     let endIndex = str.indexOf('"', 1);
+    while (str[endIndex - 1] === '\\') {
+      endIndex = str.indexOf('"', endIndex + 1);
+    }
     let tempStr = str.slice(1, endIndex);
     copyJSON = copyJSON.slice(endIndex + 1);
+    if (tempStr.length >= 2) {
+      let anotherTempStr = '';
+      for (let i = 0; i < tempStr.length; i++) {
+        if (tempStr[i] === '\\') {
+          anotherTempStr += tempStr[i + 1];
+          i++;
+        } else {
+          anotherTempStr += tempStr[i];
+        }
+      }
+      tempStr = anotherTempStr;
+    }
     return tempStr;
   };
 
@@ -152,4 +167,59 @@ var parseJSON = function (json) {
   return result;
 
 };
-console.log(parseJSON('{"a":[],"c": {}, "b": true}'));
+console.log(parseJSON('{"functions":[' +
+'{"documentation":"Displays a dialog box that allows user to ' +
+'select a folder on the local system.","name":' +
+'"ShowBrowseDialog","parameters":[{"documentation":"The ' +
+'callback function for results.","name":"callback","required":' +
+'true,"type":"callback"}]},{"documentation":"Uploads all mp3 files' +
+' in the folder provided.","name":"UploadFolder","parameters":' +
+'[{"documentation":"The path to upload mp3 files from."' +
+',"name":"path","required":true,"type":"string"},{"documentation":' +
+' "The callback function for progress.","name":"callback",' +
+'"required":true,"type":"callback"}]},{"documentation":"Returns' +
+' the server name to the current locker service.",' +
+'"name":"GetLockerService","parameters":[]},{"documentation":' +
+'"Changes the name of the locker service.","name":"SetLockerSer' +
+'vice","parameters":[{"documentation":"The value of the locker' +
+' service to set active.","name":"LockerService","required":true' +
+',"type":"string"}]},{"documentation":"Downloads locker files to' +
+' the suggested folder.","name":"DownloadFile","parameters":[{"' +
+'documentation":"The origin path of the locker file.",' +
+'"name":"path","required":true,"type":"string"},{"documentation"' +
+':"The Window destination path of the locker file.",' +
+'"name":"destination","required":true,"type":"integer"},{"docum' +
+'entation":"The callback function for progress.","name":' +
+'"callback","required":true,"type":"callback"}]}],' +
+'"name":"LockerUploader","version":{"major":0,' +
+'"micro":1,"minor":0},"versionString":"0.0.1"}',
+'{ "firstName": "John", "lastName" : "Smith", "age" : ' +
+'25, "address" : { "streetAddress": "21 2nd Street", ' +
+'"city" : "New York", "state" : "NY", "postalCode" : ' +
+' "10021" }, "phoneNumber": [ { "type" : "home", ' +
+'"number": "212 555-1234" }, { "type" : "fax", ' +
+'"number": "646 555-4567" } ] }',
+'{\r\n' +
+'          "glossary": {\n' +
+'              "title": "example glossary",\n\r' +
+'      \t\t"GlossDiv": {\r\n' +
+'                  "title": "S",\r\n' +
+'      \t\t\t"GlossList": {\r\n' +
+'                      "GlossEntry": {\r\n' +
+'                          "ID": "SGML",\r\n' +
+'      \t\t\t\t\t"SortAs": "SGML",\r\n' +
+'      \t\t\t\t\t"GlossTerm": "Standard Generalized ' +
+'Markup Language",\r\n' +
+'      \t\t\t\t\t"Acronym": "SGML",\r\n' +
+'      \t\t\t\t\t"Abbrev": "ISO 8879:1986",\r\n' +
+'      \t\t\t\t\t"GlossDef": {\r\n' +
+'                              "para": "A meta-markup language,' +
+' used to create markup languages such as DocBook.",\r\n' +
+'      \t\t\t\t\t\t"GlossSeeAlso": ["GML", "XML"]\r\n' +
+'                          },\r\n' +
+'      \t\t\t\t\t"GlossSee": "markup"\r\n' +
+'                      }\r\n' +
+'                  }\r\n' +
+'              }\r\n' +
+'          }\r\n' +
+'      }\r\n'));

@@ -67,18 +67,19 @@ var parseJSON = function (json) {
   };
 
   let boolFunc = function (str) {
+    let endIndex;
     if (str.indexOf('true') === 0) {
-      let endIndex = 4;
+      endIndex = 4;
       copyJSON = copyJSON.slice(endIndex);
       return true;
     }
     if (str.indexOf('false') === 0) {
-      let endIndex = 5;
+      endIndex = 5;
       copyJSON = copyJSON.slice(endIndex);
       return false;
     }
     if (str.indexOf('null') === 0) {
-      let endIndex = 4;
+      endIndex = 4;
       copyJSON = copyJSON.slice(endIndex);
       return null;
     }

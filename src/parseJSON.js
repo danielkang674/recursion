@@ -53,12 +53,18 @@ var parseJSON = function (json) {
   };
 
   let numFunc = function (str) {
-    let endIndex = str.indexOf(',');
-    endIndex = endIndex === -1 ? str.indexOf(']') : endIndex;
-    endIndex = endIndex === -1 ? str.length : endIndex;
-    let tempNum = str.slice(0, endIndex);
-    copyJSON = copyJSON.slice(endIndex);
-    return Number(tempNum);
+    let numnum = '';
+    let tempIndexNum = 0;
+    while (true) {
+      if (/[0-9\.\-]/.test(str[tempIndexNum])) {
+        numnum += str[tempIndexNum];
+        tempIndexNum++;
+      } else {
+        break;
+      }
+    }
+    copyJSON = copyJSON.slice(tempIndexNum);
+    return Number(numnum);
   };
 
   let boolFunc = function (str) {
@@ -147,30 +153,6 @@ var parseJSON = function (json) {
         // end of crazy code
       }
       return tempArray;
-    }
-  };
-
-  let findMatchingBrace = function (str, type) {
-    let counter = 1;
-    let minusThis, plusThis;
-    if (type === 'object') {
-      minusThis = '}';
-      plusThis = '{';
-    } else if (type === 'array') {
-      minusThis = ']';
-      plusThis = '[';
-    } else {
-      console.log('error: wrong data type');
-    }
-    for (let i = 0; i < str.length; i++) {
-      if (str[i] === minusThis) {
-        counter--;
-      } else if (str[i] === plusThis) {
-        counter++;
-      }
-      if (counter === 0) {
-        return i;
-      }
     }
   };
 

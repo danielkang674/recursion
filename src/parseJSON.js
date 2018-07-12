@@ -70,19 +70,16 @@ var parseJSON = function (json) {
   let boolFunc = function (str) {
     if (str.indexOf('true') === 0) {
       let endIndex = 4;
-      let tempBool = str.slice(0, endIndex);
       copyJSON = copyJSON.slice(endIndex);
       return true;
     }
     if (str.indexOf('false') === 0) {
       let endIndex = 5;
-      let tempBool = str.slice(0, endIndex);
       copyJSON = copyJSON.slice(endIndex);
       return false;
     }
     if (str.indexOf('null') === 0) {
       let endIndex = 4;
-      let tempBool = str.slice(0, endIndex);
       copyJSON = copyJSON.slice(endIndex);
       return null;
     }
@@ -91,29 +88,43 @@ var parseJSON = function (json) {
   let objFunc = function (str, existingObj) {
     let tempkey;
     if (existingObj) {
-      copyJSON = str.slice(str.indexOf('"'));
-      tempkey = strFunc(copyJSON);
-      existingObj[tempkey] = next(copyJSON);
-      if (copyJSON[0] === ',') {
+      while (true) {
+        copyJSON = trimWhiteSpace(copyJSON);
+        //stop bugs and infitine loops
+        if (copyJSON.length < 1) {
+          break;
+        }
+        if (copyJSON[0] === '}') {
+          break;
+        }
+        copyJSON = str.slice(str.indexOf('"'));
+        tempkey = strFunc(copyJSON);
+        existingObj[tempkey] = next(copyJSON);
         existingObj = objFunc(copyJSON, existingObj);
       }
       return existingObj;
     } else {
       let tempObj = {};
       copyJSON = str.slice(1, str.length);
-      if (copyJSON[0] === '}') {
+      if (copyJSON[0] === '}' && str[0] === '}') {
         tempObj = {};
         copyJSON = copyJSON.slice(1);
       } else {
-        tempkey = strFunc(copyJSON);
-        tempObj[tempkey] = next(copyJSON);
-        if (copyJSON[0] === ',' || (copyJSON[0] === '}' && copyJSON[1] === ',' && firstLayer === 'object')) {
+        while (true) {
+          copyJSON = trimWhiteSpace(copyJSON);
+          //stop bugs and infitine loops
+          if (copyJSON.length < 1) {
+            break;
+          }
+          if (copyJSON[0] === '}') {
+            break;
+          }
+          tempkey = strFunc(copyJSON);
+          tempObj[tempkey] = next(copyJSON);
           tempObj = objFunc(copyJSON, tempObj);
         }
-        if (copyJSON[0] === '}' && copyJSON[1] === ',' && firstLayer === 'array') {
-          copyJSON = copyJSON.slice(1);
-        }
       }
+      copyJSON = copyJSON.slice(1);
       return tempObj;
     }
   };
@@ -122,97 +133,55 @@ var parseJSON = function (json) {
     let tempIndex;
     if (existingArray) {
       tempIndex = existingArray.length;
-      copyJSON = str.slice(1, str.length);
-      // more crazy code
-      let crazy = next(copyJSON);
-      if (crazy !== undefined) {
-        existingArray[tempIndex] = crazy;
-      }
-      // end of crazy code
-      if (copyJSON[0] === ',') {
+      while (true) {
+        copyJSON = trimWhiteSpace(copyJSON);
+        //stop bugs and infitine loops
+        if (copyJSON.length < 1 && copyJSON[0] !== ']') {
+          throw SyntaxError('Unable to parse json');
+        }
+        if (copyJSON[0] === ']') {
+          break;
+        }
+        copyJSON = str.slice(1);
+        existingArray[tempIndex] = next(copyJSON);
         existingArray = arrayFunc(copyJSON, existingArray);
       }
       return existingArray;
     } else {
       let tempArray = [];
-      copyJSON = str.slice(1, str.length);
+      copyJSON = str.slice(1);
       tempIndex = tempArray.length;
       if (copyJSON[0] === ']' && str[0] === '[') {
         tempArray = [];
-        copyJSON = copyJSON.slice(1);
+        // copyJSON = copyJSON.slice(1);
       } else {
-        tempArray[tempIndex] = next(copyJSON);
-        if (copyJSON[0] === ',') {
+        while (true) {
+          copyJSON = trimWhiteSpace(copyJSON);
+          //stop bugs and infitine loops
+          if (copyJSON.length < 1) {
+            break;
+          }
+          if (copyJSON[0] === ']') {
+            break;
+          }
+          tempArray[tempIndex] = next(copyJSON);
           tempArray = arrayFunc(copyJSON, tempArray);
         }
-        // crazy code
-        if (copyJSON[0] === '}' || copyJSON[0] === ']') {
-          copyJSON = copyJSON.slice(1);
-          tempArray = arrayFunc(copyJSON, tempArray);
-        }
-        // end of crazy code
       }
+      copyJSON = copyJSON.slice(1);
       return tempArray;
     }
+  };
+
+  let trimWhiteSpace = function (str) {
+    while (/\s/.test(str[0])) {
+      str = str.slice(1);
+    }
+    return str;
   };
 
   result = next(copyJSON);
   return result;
 
 };
-console.log(parseJSON('{"functions":[' +
-  '{"documentation":"Displays a dialog box that allows user to ' +
-  'select a folder on the local system.","name":' +
-  '"ShowBrowseDialog","parameters":[{"documentation":"The ' +
-  'callback function for results.","name":"callback","required":' +
-  'true,"type":"callback"}]},{"documentation":"Uploads all mp3 files' +
-  ' in the folder provided.","name":"UploadFolder","parameters":' +
-  '[{"documentation":"The path to upload mp3 files from."' +
-  ',"name":"path","required":true,"type":"string"},{"documentation":' +
-  ' "The callback function for progress.","name":"callback",' +
-  '"required":true,"type":"callback"}]},{"documentation":"Returns' +
-  ' the server name to the current locker service.",' +
-  '"name":"GetLockerService","parameters":[]},{"documentation":' +
-  '"Changes the name of the locker service.","name":"SetLockerSer' +
-  'vice","parameters":[{"documentation":"The value of the locker' +
-  ' service to set active.","name":"LockerService","required":true' +
-  ',"type":"string"}]},{"documentation":"Downloads locker files to' +
-  ' the suggested folder.","name":"DownloadFile","parameters":[{"' +
-  'documentation":"The origin path of the locker file.",' +
-  '"name":"path","required":true,"type":"string"},{"documentation"' +
-  ':"The Window destination path of the locker file.",' +
-  '"name":"destination","required":true,"type":"integer"},{"docum' +
-  'entation":"The callback function for progress.","name":' +
-  '"callback","required":true,"type":"callback"}]}],' +
-  '"name":"LockerUploader","version":{"major":0,' +
-  '"micro":1,"minor":0},"versionString":"0.0.1"}',
-'{ "firstName": "John", "lastName" : "Smith", "age" : ' +
-  '25, "address" : { "streetAddress": "21 2nd Street", ' +
-  '"city" : "New York", "state" : "NY", "postalCode" : ' +
-  ' "10021" }, "phoneNumber": [ { "type" : "home", ' +
-  '"number": "212 555-1234" }, { "type" : "fax", ' +
-  '"number": "646 555-4567" } ] }',
-'{\r\n' +
-  '          "glossary": {\n' +
-  '              "title": "example glossary",\n\r' +
-  '      \t\t"GlossDiv": {\r\n' +
-  '                  "title": "S",\r\n' +
-  '      \t\t\t"GlossList": {\r\n' +
-  '                      "GlossEntry": {\r\n' +
-  '                          "ID": "SGML",\r\n' +
-  '      \t\t\t\t\t"SortAs": "SGML",\r\n' +
-  '      \t\t\t\t\t"GlossTerm": "Standard Generalized ' +
-  'Markup Language",\r\n' +
-  '      \t\t\t\t\t"Acronym": "SGML",\r\n' +
-  '      \t\t\t\t\t"Abbrev": "ISO 8879:1986",\r\n' +
-  '      \t\t\t\t\t"GlossDef": {\r\n' +
-  '                              "para": "A meta-markup language,' +
-  ' used to create markup languages such as DocBook.",\r\n' +
-  '      \t\t\t\t\t\t"GlossSeeAlso": ["GML", "XML"]\r\n' +
-  '                          },\r\n' +
-  '      \t\t\t\t\t"GlossSee": "markup"\r\n' +
-  '                      }\r\n' +
-  '                  }\r\n' +
-  '              }\r\n' +
-  '          }\r\n' +
-  '      }\r\n'));
+console.log(parseJSON('["foo", "bar"'));
